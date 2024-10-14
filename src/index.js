@@ -5,18 +5,40 @@ import reportWebVitals from "./reportWebVitals";
 import "tachyons";
 import App from "./containers/App";
 import { Provider } from "react-redux";
-import { legacy_createStore as createStore } from "redux";
-import { searchRobots } from "./reducers";
+import { searchRobots, requestRobots } from "./reducers";
+import {
+  legacy_createStore as createStore,
+  applyMiddleware,
+  combineReducers,
+} from "redux";
+import { createLogger } from "redux-logger";
+import { thunk } from "redux-thunk";
 
-const store = createStore(searchRobots);
+const options = {
+  level: "log",
+  colors: {
+    title: () => "black",
+    prevState: () => "#9E9E9E",
+    action: () => "#03A9F4",
+    nextState: () => "#4CAF50",
+    error: () => "#F20404",
+  },
+  titleFormatter: (action, time, took) => {
+    return `Action @ ${time} ${action.type} (in ${took.toFixed(2)} ms)`;
+  },
+};
+
+const logger = createLogger(options);
+
+const rootReducer = combineReducers({ searchRobots, requestRobots });
+
+const store = createStore(rootReducer, applyMiddleware(thunk, logger));
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <App />
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
